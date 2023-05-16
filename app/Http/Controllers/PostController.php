@@ -12,7 +12,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $posts = Post::all();
+        return response()->json($posts);
     }
 
     /**
@@ -89,7 +90,7 @@ class PostController extends Controller
     public function destroy(string $id)
     {
         $post = Post::findOrFail($id);
-        
+
         // Check if the authenticated user is the owner of the post
         if ($post->user_id!== auth()->user()->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
