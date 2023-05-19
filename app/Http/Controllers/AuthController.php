@@ -30,6 +30,7 @@ class AuthController extends Controller
         }
 
         if(Auth::attempt(['email' => request('email'), 'password' => request('password')])){
+
             $user = Auth::user();
             $token =  $user->createToken('blogApp')->accessToken;
             // return response()->json(['success' => $success], $this->successStatus);
@@ -52,11 +53,10 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-
 		$validator = Validator::make($request->all(),[
             'email' => 'required|unique:users,email|email|max:255',
             'username'  =>  'required|unique:users,username|alpha_dash|min:5',
-            'password'  =>  'required|min:6',
+            'password'  =>  'required|min:6|confirmed',
             'password_confirmation'	=>	'required|same:password',
         ]);
 
@@ -105,7 +105,7 @@ class AuthController extends Controller
         if ($user) {
             // Revoke the user's access token
             $user->token()->revoke();
-            
+
             $user->token()->delete();
 
             return response()->json([

@@ -24,6 +24,10 @@ Route::prefix('v1')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
 
+    Route::get('/', function () {
+        return "Welcome TO Anthony's Blog";
+    });
+
     Route::middleware(['auth:api'])->group(function () {
         Route::apiResource('posts', PostController::class);
     });
