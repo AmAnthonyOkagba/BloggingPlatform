@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
 {
@@ -17,32 +18,30 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $posts = Post::all();
-
-        return response()->json($posts);
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(),[
             'title' => 'required',
             'content' => 'required',
         ]);
 
+        if($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'errors' => $validator->errors()
+            ], 401);
+        }
+
         $post = Post::create([
             'title' => $request->input('title'),
             'content' => $request->input('content'),
-            'user_id' => auth()->user()->id, // Assuming user authentication is implemented
+            'user_id' => auth()->user()->id,
         ]);
 
-        return response()->json($post, 201);
+        return response()->json($post, 200);
     }
 
     /**
@@ -51,31 +50,42 @@ class PostController extends Controller
     public function show(string $id)
     {
         $post = Post::findOrFail($id);
+        if ($post->user_id !== auth()->user()->id) {
+            return response()->json([
+                'status' => false,
+                'error' => 'Unauthorized',
+                'message' => 'This post is not for you. Please',
+            ], 403);
+        }
 
         return response()->json($post);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(),[
             'title' => 'required',
             'content' => 'required',
         ]);
 
+        if($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'errors' => $validator->errors()
+            ], 401);
+        }
+
         $post = Post::findOrFail($id);
         if ($post->user_id !== auth()->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json([
+                'status' => false,
+                'error' => 'Unauthorized',
+                'message' => 'This post is not for you. Please',
+            ], 403);
         }
         $post->title = $request->input('title');
         $post->content = $request->input('content');
@@ -90,14 +100,20 @@ class PostController extends Controller
     public function destroy(string $id)
     {
         $post = Post::findOrFail($id);
-
         // Check if the authenticated user is the owner of the post
-        if ($post->user_id!== auth()->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        if ($post->user_id !== auth()->user()->id) {
+            return response()->json([
+                'status' => false,
+                'error' => 'Unauthorized',
+                'message' => 'This post is not for you. Please',
+            ], 403);
         }
 
         $post->delete();
 
-        return response()->json(null, 204);
+        return response()->json([
+            'status' => true,
+            'message' => 'Your post has been deleted',
+        ], 200);
     }
 }

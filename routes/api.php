@@ -29,6 +29,14 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware(['auth:api'])->group(function () {
+        // Route::prefix('posts')->group(function () {
+        //     Route::get('/', PostController::class);
+        //     Route::post('store', PostController::class);
+        // });
+
+
         Route::apiResource('posts', PostController::class);
+
+
     });
 });
