@@ -25,18 +25,11 @@ Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 
     Route::get('/', function () {
-        return "Welcome TO Anthony's Blog";
+        return "Welcome To Anthony's Blog";
     });
 
     Route::middleware(['auth:api'])->group(function () {
-        // Route::prefix('posts')->group(function () {
-        //     Route::get('/', PostController::class);
-        //     Route::post('store', PostController::class);
-        // });
-
-
+        Route::post('posts/{id}', [PostController::class, 'update']);
         Route::apiResource('posts', PostController::class);
-
-
     });
 });
